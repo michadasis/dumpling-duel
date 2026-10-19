@@ -32,7 +32,7 @@ export function angleDelta(a, b) {
 }
 
 export const eyeY = (p) => (p.crouch ? CROUCH_EYE : EYE);
-export const headY = (p) => eyeY(p) + 0.04;
+export const headY = (p) => eyeY(p) + 0.08;
 
 export function forward(yaw, pitch = 0) {
   const cp = Math.cos(pitch);

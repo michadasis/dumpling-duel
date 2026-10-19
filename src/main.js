@@ -84,7 +84,8 @@ const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMa
 blob.rotation.x = -Math.PI / 2; blob.renderOrder = 3; scene.add(blob);
 const ring = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ map: ringTex(), transparent: true, depthWrite: false, color: '#ffffff' }));
 ring.rotation.x = -Math.PI / 2; ring.renderOrder = 4; ring.visible = false; scene.add(ring);
-const arcDots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.014, 8, 6), new THREE.MeshBasicMaterial({ color: '#f2b632', transparent: true, opacity: 0.85 }), 14);
+const ARC_DOTS = 22;
+const arcDots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.014, 8, 6), new THREE.MeshBasicMaterial({ color: '#f2b632', transparent: true, opacity: 0.85 }), ARC_DOTS);
 arcDots.frustumCulled = false; arcDots.visible = false; scene.add(arcDots);
 
 // Each player picks Male or Female; the slot (P1 kitchen side / P2 balcony side) only sets the name-tag colour.
@@ -133,7 +134,7 @@ function ensureSim() {
   return G.sim;
 }
 
-const localPlayer = () => ({ x: L.x, z: L.z, yaw: L.yaw, pitch: L.pitch, crouch: L.crouch, handsOut: nowS() < L.handsOutUntil, brace: L.brace, eyes: L.eyes, charging: L.charging, power: L.power });
+const localPlayer = () => ({ x: L.x, z: L.z, vx: L.vx, vz: L.vz, yaw: L.yaw, pitch: L.pitch, crouch: L.crouch, handsOut: nowS() < L.handsOutUntil, brace: L.brace, eyes: L.eyes, charging: L.charging, power: L.power });
 const gsNow = () => G.view.gs;
 const iHold = () => G.view.d.state === 'held' && G.view.d.holder === G.me;
 const oppName = () => G.names[1 - G.me] || 'Opponent';
@@ -170,13 +171,13 @@ function doThrow() {
   L.power = 0;
   G.throwsDone++;
   if (G.role === 'guest') {
-    G.link.send({ t: 'throw', d: [r3(dir.x), r3(dir.y), r3(dir.z)], pw: r3(power), x: r3(L.x), z: r3(L.z), yaw: r3(L.yaw), pitch: r3(L.pitch), lag: r3(Math.min(0.12, G.ow)) });
+    G.link.send({ t: 'throw', d: [r3(dir.x), r3(dir.y), r3(dir.z)], pw: r3(power), x: r3(L.x), z: r3(L.z), vx: r3(L.vx), vz: r3(L.vz), yaw: r3(L.yaw), pitch: r3(L.pitch), lag: r3(Math.min(0.12, G.ow)) });
     const o = throwOrigin(L, dir), sp = PHYS.throwMin + (PHYS.throwMax - PHYS.throwMin) * power;
     G.pred = { t0: performance.now(), o, v: { x: dir.x * sp + L.vx * 0.3, y: dir.y * sp, z: dir.z * sp + L.vz * 0.3 }, prevId: G.view.d.id || 0 };
     G.disp.set(o.x, o.y, o.z);
     fp.throwAnim();
     audio.play('whoosh', { v: power });
-  } else if (G.sim.requestThrow(G.me, dir, power, { x: L.x, z: L.z, yaw: L.yaw, pitch: L.pitch })) {
+  } else if (G.sim.requestThrow(G.me, dir, power, { x: L.x, z: L.z, vx: L.vx, vz: L.vz, yaw: L.yaw, pitch: L.pitch })) {
     fp.throwAnim();
   }
 }
@@ -336,7 +337,7 @@ function hostOnMessage(m) {
     sim.setPlayerState(1, st);
     sim.players[1].latency = clamp(m.lat || 0, 0, 0.3);
   } else if (m.t === 'throw') {
-    sim.requestThrow(1, { x: m.d[0], y: m.d[1], z: m.d[2] }, m.pw, { x: m.x, z: m.z, yaw: m.yaw, pitch: m.pitch, lag: m.lag });
+    sim.requestThrow(1, { x: m.d[0], y: m.d[1], z: m.d[2] }, m.pw, { x: m.x, z: m.z, vx: m.vx, vz: m.vz, yaw: m.yaw, pitch: m.pitch, lag: m.lag });
   } else if (m.t === 'claim') sim.claimCatch(1, m.id);
   else if (m.t === 'pick') sim.requestPickup(1);
   else if (m.t === 'ping') G.link.send({ t: 'pong', c: m.c });
@@ -587,9 +588,14 @@ function renderGame(dt, now) {
     const dir = forward(L.yaw, L.pitch);
     const o = throwOrigin({ x: L.x, z: L.z, yaw: L.yaw, crouch: L.crouch }, dir);
     const spd = PHYS.throwMin + (PHYS.throwMax - PHYS.throwMin) * L.power;
-    const span = gs && gs.phase === 'penalty' ? 0.18 : 0.3;
-    for (let i = 0; i < 14; i++) {
-      const t = 0.03 + (i / 13) * span;
+    let span = 0.3;
+    if (gs && gs.phase === 'penalty') {
+      // Free shot: show most of the flight so you can see how far it drops before the head.
+      const o2 = v.players[opp], dist = Math.hypot(o2.x - L.x, o2.z - L.z);
+      span = clamp((0.72 * dist) / Math.max(1, spd * Math.cos(L.pitch)), 0.3, 1.0);
+    }
+    for (let i = 0; i < ARC_DOTS; i++) {
+      const t = 0.03 + (i / (ARC_DOTS - 1)) * span;
       m4.makeTranslation(o.x + dir.x * spd * t, o.y + dir.y * spd * t - 4.905 * t * t, o.z + dir.z * spd * t);
       arcDots.setMatrixAt(i, m4);
     }
@@ -665,7 +671,7 @@ function updateHud(dt) {
   let txt = '', cls = '';
   if (gs.phase === 'penalty' && gs.penalty && !gs.penalty.result) {
     if (gs.penalty.victim === me) { txt = hint('Free shot on you! Hold F to brace or Q to close your eyes', 'Free shot on you! Hold BRACE or CLOSE EYES'); cls = 'warn'; }
-    else if (!gs.penalty.shot) { txt = 'Free shot! Aim for the head'; cls = 'go'; }
+    else if (!gs.penalty.shot) { txt = 'Free shot! Aim a little above the head, it drops'; cls = 'go'; }
   } else if (gs.phase === 'live') {
     if (iHold()) {
       if (gs.mode === 'hotpotato') { txt = hint('Get rid of it! Hold click, release to throw', 'Get rid of it! Hold THROW, release'); cls = gs.timeLeft < 8 ? 'warn' : 'go'; }

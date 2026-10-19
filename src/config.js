@@ -51,7 +51,7 @@ export const PHYS = {
   chargeTime: 0.85,
   moveSpeed: 2.7,
   playerR: 0.24,
-  headR: 0.15,
+  headR: 0.16,
 };
 
 export const NET = {

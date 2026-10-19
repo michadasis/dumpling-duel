@@ -75,10 +75,11 @@ export function createPhysics(colliders) {
 
   const players = [0, 1].map((i) => {
     const group = i === 0 ? GROUP.P0 : GROUP.P1;
-    const body = new CANNON.Body({ type: CANNON.Body.KINEMATIC, mass: 0, material: M.player, collisionFilterGroup: group, collisionFilterMask: GROUP.DUMP | GROUP.PROP });
+    // allowSleep: false, otherwise the hitboxes fall asleep while standing still and stop following the player.
+    const body = new CANNON.Body({ type: CANNON.Body.KINEMATIC, mass: 0, material: M.player, collisionFilterGroup: group, collisionFilterMask: GROUP.DUMP | GROUP.PROP, allowSleep: false });
     body.addShape(new CANNON.Cylinder(0.21, 0.19, 1.42, 10));
     body.userData = { kind: 'body', player: i };
-    const head = new CANNON.Body({ type: CANNON.Body.KINEMATIC, mass: 0, material: M.player, collisionFilterGroup: group, collisionFilterMask: GROUP.DUMP | GROUP.PROP });
+    const head = new CANNON.Body({ type: CANNON.Body.KINEMATIC, mass: 0, material: M.player, collisionFilterGroup: group, collisionFilterMask: GROUP.DUMP | GROUP.PROP, allowSleep: false });
     head.addShape(new CANNON.Sphere(PHYS.headR));
     head.userData = { kind: 'head', player: i };
     world.addBody(body); world.addBody(head);

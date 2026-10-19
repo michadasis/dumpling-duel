@@ -78,11 +78,15 @@ export class Sim {
     if (!frozen && s.x !== undefined) {
       const z = ZONES[i];
       const nx = clamp(s.x, z.x0, z.x1), nz = clamp(s.z, z.z0, z.z1);
-      const dtv = Math.max(1e-3, this.time - (p._t || 0));
-      if (dtv < 0.5) { p.vx = p.vx * 0.6 + ((nx - p.x) / dtv) * 0.4; p.vz = p.vz * 0.6 + ((nz - p.z) / dtv) * 0.4; }
+      if (s.vx !== undefined) { p.vx = s.vx; p.vz = s.vz; }
+      else {
+        const dtv = this.time - (p._t || 0);
+        if (dtv >= 0.008 && dtv < 0.5) { p.vx = p.vx * 0.6 + ((nx - p.x) / dtv) * 0.4; p.vz = p.vz * 0.6 + ((nz - p.z) / dtv) * 0.4; p._t = this.time; }
+        else if (dtv >= 0.5) p._t = this.time;
+      }
       p.x = nx; p.z = nz;
     }
-    p._t = this.time;
+    if (frozen) { p.vx = 0; p.vz = 0; p._t = this.time; }
     if (s.yaw !== undefined) { p.yaw = s.yaw; p.pitch = s.pitch; }
     p.crouch = frozen ? p.crouch && !this.isPenaltyVictim(i) : !!s.crouch;
     if (this.isPenaltyVictim(i)) p.crouch = false;
@@ -111,7 +115,11 @@ export class Sim {
     power = clamp(power, 0, 1);
     const speed = PHYS.throwMin + (PHYS.throwMax - PHYS.throwMin) * power;
     const o = throwOrigin(p, { x: dx, y: dy, z: dz });
-    let vx = dx * speed + p.vx * 0.3, vy = dy * speed, vz = dz * speed + p.vz * 0.3;
+    // Throws inherit a bit of the thrower's walking speed, never during a free shot (everyone is frozen).
+    let ivx = pen ? 0 : (extra.vx ?? p.vx), ivz = pen ? 0 : (extra.vz ?? p.vz);
+    const iv = Math.hypot(ivx, ivz);
+    if (iv > PHYS.moveSpeed) { ivx *= PHYS.moveSpeed / iv; ivz *= PHYS.moveSpeed / iv; }
+    let vx = dx * speed + ivx * 0.3, vy = dy * speed, vz = dz * speed + ivz * 0.3;
     let ox = o.x, oy = o.y, oz = o.z;
     const lag = clamp(extra.lag || 0, 0, 0.12);
     if (lag > 0) { ox += vx * lag; oy += vy * lag - 4.905 * lag * lag; oz += vz * lag; vy -= 9.81 * lag; }

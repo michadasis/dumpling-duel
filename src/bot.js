@@ -34,7 +34,7 @@ export class Bot {
   planThrow() {
     const gs = this.sim.gs, L = this.L;
     const e = () => (Math.random() + Math.random() - 1) * L.aimErr;
-    if (gs.phase === 'penalty') return { wait: rand(0.8, 2.2), speed: rand(9, 11.5), kind: 'head', ex: e() * 0.7, ey: e() * 0.5 };
+    if (gs.phase === 'penalty') return { wait: rand(0.8, 2.2), speed: rand(9, 11.5), kind: 'head', ex: e() * 1.1, ey: e() * 0.9 };
     if (gs.mode === 'hotpotato') {
       const urgent = gs.timeLeft < 5;
       const sneaky = !urgent && gs.timeLeft > 12 && Math.random() < 0.2;

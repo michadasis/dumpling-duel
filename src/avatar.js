@@ -227,11 +227,11 @@ export class Avatar {
       L.hip.rotation.x = s * sw + c * 1.25;
       L.knee.rotation.x = -Math.max(0, -s * sw) * 0.8 - c * 2.0;
     }
-    this.torso.rotation.x = -c * 0.35 - st.brace * 0.15;
+    this.torso.rotation.x = -c * 0.35 - st.brace * 0.06;
     this.torso.position.y = Math.sin(performance.now() * 0.002) * 0.01;
 
     // head: look pitch, brace tuck, hit snap
-    this.headPivot.rotation.x = clamp(p.pitch * 0.6, -0.5, 0.5) - st.brace * 0.35 + this.hit * 0.7 + c * 0.2;
+    this.headPivot.rotation.x = clamp(p.pitch * 0.6, -0.5, 0.5) - st.brace * 0.18 + this.hit * 0.7 + c * 0.2;
     this.headPivot.rotation.z = this.hit * 0.35 * this.hitDir + st.eyes * 0.15;
     this.headPivot.rotation.y = st.eyes * 0.35;
     for (const E of this.eyes) {
