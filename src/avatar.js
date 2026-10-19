@@ -71,11 +71,9 @@ function buildHair(look, pivot) {
     back.position.set(0, -0.06, 0.065); back.castShadow = true; pivot.add(back);
     const tip = mat(look.tip, 0.85);
     for (let i = 0; i < 6; i++) pivot.add(sph(0.045, i % 2 ? tip : hair, -0.12 + i * 0.048, -0.33 + (i % 2) * 0.02, 0.07, 1, 1.2, 0.8));
-    // face-framing strands falling in front of the shoulders, wavy at the ends
+    // face-framing strands falling to the shoulders
     for (const s of [-1, 1]) {
       const st = cap(0.036, 0.3, hair); st.position.set(s * 0.13, -0.07, -0.03); st.rotation.set(-0.1, 0, s * 0.08); pivot.add(st);
-      pivot.add(sph(0.042, tip, s * 0.138, -0.25, -0.05, 1, 1.25, 0.85));
-      pivot.add(sph(0.036, hair, s * 0.115, -0.2, -0.065));
     }
   }
 }
