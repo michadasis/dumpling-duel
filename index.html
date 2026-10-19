@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Dumpling Duel</title>
+<meta name="description" content="A squishy 1v1 throwing game set in a tiny studio flat. Classic, Penalty and Hot Potato modes.">
+<meta name="theme-color" content="#2b2420">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M8 42c0-16 11-28 24-28s24 12 24 28c0 6-6 10-24 10S8 48 8 42z' fill='%23fffaf1' stroke='%232b2420' stroke-width='4'/%3E%3Ccircle cx='24' cy='38' r='3' fill='%232b2420'/%3E%3Ccircle cx='40' cy='38' r='3' fill='%232b2420'/%3E%3Cellipse cx='18' cy='44' rx='4' ry='2.5' fill='%23ff9fb1'/%3E%3Cellipse cx='46' cy='44' rx='4' ry='2.5' fill='%23ff9fb1'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* Layout concept: chunky toy-packaging stickers floating over the live 3D studio. */
+:root {
+  --ink: #2b2420;
+  --bun: #fffaf1;
+  --flour: #f4ecdf;
+  --mustard: #f2b632;
+  --blush: #ff9fb1;
+  --p1: #ff6f59;
+  --p2: #3fa7d6;
+  --ok: #58b368;
+  --muted: #7a6c62;
+  --display: 'Mochiy Pop One', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --body: 'Zen Maru Gothic', 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --line: 3px;
+  --shadow: 5px 5px 0 var(--ink);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--ink); color: var(--ink); font-family: var(--body); -webkit-tap-highlight-color: transparent; }
+canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
+
+/* ---------- menus ---------- */
+#menu { position: fixed; inset: 0; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); overflow-y: auto; z-index: 30; background: radial-gradient(ellipse at 50% 120%, rgba(43,36,32,0.55), rgba(43,36,32,0.05) 60%); }
+.screen { width: min(560px, 100%); }
+@media (min-width: 900px) { #menu { place-items: center start; padding-left: max(5vw, env(safe-area-inset-left)); } #menu.center { place-items: center; } }
+.sticker { background: var(--bun); border: var(--line) solid var(--ink); border-radius: 26px; box-shadow: var(--shadow); padding: clamp(18px, 4vw, 28px); display: grid; gap: 16px; }
+.logo { font-family: var(--display); font-weight: 400; margin: 0; line-height: 0.92; font-size: clamp(44px, 11vw, 76px); letter-spacing: -0.01em; color: var(--bun); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 4px 5px 0 var(--ink); display: grid; }
+.logo span:last-child { color: var(--mustard); margin-left: 0.5em; }
+.tag { margin: 0; font-size: 16px; color: var(--muted); font-weight: 700; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(24px, 6vw, 32px); margin: 0; text-wrap: balance; }
+h3 { margin: 0 0 4px; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+p { margin: 0; line-height: 1.5; }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.btns > * { flex: 1 1 180px; }
+.btn { border: var(--line) solid var(--ink); background: var(--mustard); border-radius: 18px; padding: 13px 18px; font-weight: 900; font-size: 17px; box-shadow: 3px 3px 0 var(--ink); transition: transform 0.12s cubic-bezier(.3,1.6,.5,1), box-shadow 0.12s; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px) scale(1.04, 0.9); box-shadow: 1px 1px 0 var(--ink); }
+.btn.big { font-size: 19px; padding: 16px 20px; }
+.btn.alt { background: var(--p2); color: var(--bun); }
+.btn.ghost { background: var(--flour); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.link { background: none; border: 0; padding: 4px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+.field { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
+.field input[type=text] { font: inherit; font-size: 17px; font-weight: 700; padding: 11px 14px; border: var(--line) solid var(--ink); border-radius: 14px; background: #fff; color: var(--ink); min-width: 0; }
+.code-input { text-transform: uppercase; letter-spacing: 0.3em; font-family: var(--display) !important; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 520px) { .modes { grid-template-columns: 1fr; } }
+.mode-card { text-align: left; border: var(--line) solid var(--ink); border-radius: 18px; background: var(--flour); padding: 12px; display: grid; gap: 6px; align-content: start; }
+.mode-card b { font-family: var(--display); font-weight: 400; font-size: 18px; }
+.mode-card small { font-size: 13px; line-height: 1.35; color: var(--muted); font-weight: 700; }
+.mode-card .chip { justify-self: start; font-size: 11px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; background: var(--bun); border: 2px solid var(--ink); border-radius: 99px; padding: 2px 8px; }
+.mode-card[aria-checked=true] { background: var(--mustard); box-shadow: 3px 3px 0 var(--ink); }
+.mode-card[aria-checked=true] small { color: var(--ink); }
+.seg { display: inline-flex; border: var(--line) solid var(--ink); border-radius: 14px; overflow: hidden; background: var(--flour); }
+.seg button { border: 0; background: none; padding: 9px 14px; font-weight: 900; font-size: 14px; }
+.seg button + button { border-left: 2px solid var(--ink); }
+.seg button[aria-pressed=true] { background: var(--ink); color: var(--bun); }
+.opt-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-weight: 700; font-size: 14px; }
+.room-code { font-family: var(--display); font-size: clamp(34px, 10vw, 52px); letter-spacing: 0.18em; background: var(--flour); border: var(--line) dashed var(--ink); border-radius: 18px; padding: 8px 14px; text-align: center; user-select: all; }
+.status { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.status .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--mustard); border: 2px solid var(--ink); animation: pulse 1.2s ease-in-out infinite; flex: none; }
+.status.ok .dot { background: var(--ok); animation: none; }
+.status.err .dot { background: var(--p1); animation: none; }
+@keyframes pulse { 50% { transform: scale(0.7); } }
+.note { font-size: 13px; color: var(--muted); font-weight: 700; }
+.howto { display: grid; gap: 14px; max-height: min(64vh, 560px); overflow-y: auto; padding-right: 6px; }
+.howto ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.45; }
+.keys-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; font-size: 14px; }
+kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px solid var(--ink); border-bottom-width: 4px; border-radius: 8px; padding: 1px 7px; background: #fff; white-space: nowrap; }
+.slider { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; font-weight: 700; font-size: 14px; }
+.slider input { grid-column: 1 / -1; accent-color: var(--ink); width: 100%; }
+.over-score { font-family: var(--display); font-size: clamp(40px, 12vw, 64px); text-align: center; line-height: 1; }
+.over-score .s1 { color: var(--p1); } .over-score .s2 { color: var(--p2); }
+.over-score { -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; font-weight: 900; }
+.hud-top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: start; }
+.pill { display: inline-flex; align-items: center; gap: 8px; background: var(--bun); border: var(--line) solid var(--ink); border-radius: 99px; padding: 6px 12px 6px 8px; box-shadow: 3px 3px 0 var(--ink); max-width: 100%; min-width: 0; }
+.pill i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); flex: none; }
+.pill.p1 i { background: var(--p1); } .pill.p2 i { background: var(--p2); }
+.pill .nm { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pill .sc { font-family: var(--display); font-weight: 400; font-size: 20px; font-variant-numeric: tabular-nums; }
+.pill.p1 { justify-self: start; }
+.pill.p2 { justify-self: end; }
+.who { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
+.who > .field:first-child { flex: 1 1 200px; }
+.who .seg button { padding: 11px 16px; font-size: 15px; }
+.hud-center { display: grid; justify-items: center; gap: 4px; }
+.mode-name { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bun); text-shadow: 0 2px 0 var(--ink), 0 0 8px rgba(0,0,0,0.5); }
+.big-num { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 7vw, 46px); line-height: 1; color: var(--bun); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 3px 3px 0 var(--ink); font-variant-numeric: tabular-nums; }
+.big-num.hot { color: var(--p1); animation: throb 0.5s ease-in-out infinite; }
+@keyframes throb { 50% { transform: scale(1.12); } }
+.sub { font-size: 13px; color: var(--bun); text-shadow: 0 2px 0 var(--ink), 0 0 6px rgba(0,0,0,0.6); text-align: center; }
+#crosshair { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%, -50%); }
+#crosshair .dot { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--bun); box-shadow: 0 0 0 2px var(--ink); }
+#crosshair svg { position: absolute; inset: 0; overflow: visible; }
+#crosshair .ring { fill: none; stroke: var(--mustard); stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 23px 23px; filter: drop-shadow(0 0 1.5px var(--ink)); }
+.prompt { position: absolute; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translateX(-50%); background: var(--bun); border: var(--line) solid var(--ink); border-radius: 16px; padding: 8px 14px; box-shadow: 3px 3px 0 var(--ink); font-size: 15px; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
+.prompt.warn { background: var(--p1); color: var(--bun); }
+.prompt.go { background: var(--mustard); }
+.banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: max-content; max-width: calc(100vw - 32px); }
+.banner .b-title { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 10vw, 84px); line-height: 1; color: var(--bun); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 5px 5px 0 var(--ink); text-wrap: balance; }
+.banner .b-sub { margin-top: 8px; font-size: clamp(15px, 3.6vw, 20px); color: var(--bun); text-shadow: 0 2px 0 var(--ink), 0 0 8px rgba(0,0,0,0.6); }
+.banner.show { animation: pop 1.7s cubic-bezier(.2,1.4,.4,1) forwards; }
+.banner.red .b-title { color: var(--p1); } .banner.blue .b-title { color: var(--p2); } .banner.gold .b-title { color: var(--mustard); }
+@keyframes pop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5, 1.4); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.12, 0.9); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -62%) scale(1); } }
+.toast { position: absolute; left: 50%; top: max(128px, calc(env(safe-area-inset-top) + 118px)); transform: translateX(-50%); background: var(--ink); color: var(--bun); border-radius: 12px; padding: 6px 12px; font-size: 14px; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.count { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); font-family: var(--display); font-size: clamp(80px, 22vw, 160px); color: var(--mustard); -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 6px 6px 0 var(--ink); }
+.keys { position: absolute; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom)); background: rgba(255,250,241,0.92); border: 2px solid var(--ink); border-radius: 14px; padding: 8px 10px; font-size: 12px; font-weight: 700; display: grid; grid-template-columns: auto auto; gap: 3px 10px; }
+.netinfo { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); font-size: 12px; color: var(--bun); text-shadow: 0 1px 0 var(--ink); }
+.clickplay { position: fixed; inset: 0; display: grid; place-items: center; z-index: 20; cursor: pointer; background: rgba(43,36,32,0.25); }
+.clickplay div { background: var(--bun); border: var(--line) solid var(--ink); border-radius: 20px; padding: 14px 22px; font-weight: 900; font-size: 18px; box-shadow: var(--shadow); }
+
+/* ---------- effects ---------- */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 9; }
+#fx-eyes .lid { position: absolute; left: -10%; width: 120%; height: 52%; background: radial-gradient(ellipse at 50% 100%, #3a1513, #120807 70%); transition: transform 0.16s ease-in; }
+#fx-eyes .lid.t { top: 0; transform: translateY(-105%); border-radius: 0 0 50% 50% / 0 0 30% 30%; }
+#fx-eyes .lid.b { bottom: 0; transform: translateY(105%); border-radius: 50% 50% 0 0 / 30% 30% 0 0; background: radial-gradient(ellipse at 50% 0%, #3a1513, #120807 70%); }
+#fx-eyes.closed .lid { transform: translateY(0); }
+#fx-vig { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(20,10,5,0.65)); opacity: 0; transition: opacity 0.2s; }
+#fx-vig.on { opacity: 1; }
+#fx-hot { box-shadow: inset 0 0 0 0 rgba(255,80,40,0); transition: box-shadow 0.3s; }
+#fx-flash { background: #fff; opacity: 0; }
+#fx-splat { display: grid; place-items: center; opacity: 0; }
+#fx-splat svg { width: min(120vw, 120vh); height: auto; }
+#fx-splat.on { animation: splat 1.1s ease-out forwards; }
+@keyframes splat { 0% { opacity: 0.98; transform: scale(1.35, 0.85); } 12% { transform: scale(1.1); } 55% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(18%) scale(1.05, 1.2); } }
+#fx-flash.on { animation: flash 0.7s ease-out forwards; }
+@keyframes flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+
+/* ---------- touch ---------- */
+#touch { position: fixed; inset: 0; z-index: 12; touch-action: none; user-select: none; -webkit-user-select: none; }
+#t-move { position: absolute; left: 0; top: 0; width: 45%; height: 100%; }
+#t-look { position: absolute; right: 0; top: 0; width: 55%; height: 100%; }
+#t-joy { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 3px solid rgba(255,250,241,0.8); background: rgba(43,36,32,0.25); opacity: 0; pointer-events: none; left: 22%; top: 70%; }
+#t-joy.on { opacity: 1; }
+#t-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; border-radius: 50%; background: var(--bun); border: 3px solid var(--ink); transform: translate(-50%, -50%); }
+.tbtn { position: absolute; border-radius: 50%; border: var(--line) solid var(--ink); background: rgba(255,250,241,0.92); font-weight: 900; font-size: 13px; display: grid; place-items: center; box-shadow: 3px 3px 0 var(--ink); }
+.tbtn.down { transform: scale(0.92); background: var(--mustard); }
+#t-throw { width: 92px; height: 92px; right: max(18px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); background: var(--mustard); font-size: 15px; }
+#t-catch { width: 74px; height: 74px; right: calc(max(18px, env(safe-area-inset-right)) + 104px); bottom: max(20px, env(safe-area-inset-bottom)); }
+#t-pick { width: 64px; height: 64px; right: calc(max(18px, env(safe-area-inset-right)) + 20px); bottom: calc(max(24px, env(safe-area-inset-bottom)) + 104px); }
+#t-duck { width: 58px; height: 58px; right: calc(max(18px, env(safe-area-inset-right)) + 112px); bottom: calc(max(20px, env(safe-area-inset-bottom)) + 88px); }
+#t-brace { width: 84px; height: 84px; right: max(18px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); }
+#t-eyes { width: 84px; height: 84px; right: calc(max(18px, env(safe-area-inset-right)) + 96px); bottom: max(24px, env(safe-area-inset-bottom)); }
+#t-pause { width: 44px; height: 44px; left: 50%; transform: translateX(-50%); top: max(64px, calc(env(safe-area-inset-top) + 56px)); font-size: 16px; border-radius: 14px; }
+@media (prefers-reduced-motion: reduce) { .banner.show, #fx-splat.on, .big-num.hot, .status .dot { animation-duration: 0.01s; animation-iteration-count: 1; } }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Game view"></canvas>
+
+<div id="hud" hidden>
+  <div class="hud-top">
+    <div class="pill p1"><i></i><span class="nm" id="h-n0">You</span><b class="sc" id="h-s0">0</b></div>
+    <div class="hud-center">
+      <div class="mode-name" id="h-mode">Classic</div>
+      <div class="big-num" id="h-big"></div>
+      <div class="sub" id="h-sub"></div>
+    </div>
+    <div class="pill p2"><b class="sc" id="h-s1">0</b><span class="nm" id="h-n1">Bao Bot</span><i></i></div>
+  </div>
+  <div id="crosshair"><svg viewBox="0 0 46 46"><circle class="ring" id="h-ring" cx="23" cy="23" r="19" stroke-dasharray="0 200"/></svg><div class="dot"></div></div>
+  <div class="prompt" id="h-prompt" hidden></div>
+  <div class="banner" id="h-banner"><div class="b-title"></div><div class="b-sub"></div></div>
+  <div class="toast" id="h-toast"></div>
+  <div class="count" id="h-count" hidden></div>
+  <div class="keys" id="h-keys">
+    <kbd>WASD</kbd><span>move</span>
+    <kbd>Mouse</kbd><span>aim</span>
+    <kbd>Hold click</kbd><span>charge, release to throw</span>
+    <kbd>Space / R-click</kbd><span>catch</span>
+    <kbd>E</kbd><span>pick up</span>
+    <kbd>C</kbd><span>duck</span>
+    <kbd>F / Q</kbd><span>brace / close eyes (free shot)</span>
+    <kbd>H</kbd><span>hide this</span>
+  </div>
+  <div class="netinfo" id="h-net"></div>
+</div>
+
+<div class="fx" id="fx-vig"></div>
+<div class="fx" id="fx-hot"></div>
+<div class="fx" id="fx-splat"><svg viewBox="0 0 200 160" aria-hidden="true"><path d="M20 90c-8-30 20-62 58-66 12-14 34-16 46-2 30 0 60 22 60 54 14 10 10 34-8 40-10 18-40 24-64 18-20 10-52 8-66-8-20 0-34-18-26-36z" fill="#fffaf1"/><circle cx="78" cy="78" r="7" fill="#2b2420"/><circle cx="122" cy="78" r="7" fill="#2b2420"/><ellipse cx="62" cy="96" rx="12" ry="7" fill="#ff9fb1" opacity=".7"/><ellipse cx="138" cy="96" rx="12" ry="7" fill="#ff9fb1" opacity=".7"/><path d="M92 96q4 6 8 0q4 6 8 0" fill="none" stroke="#2b2420" stroke-width="4" stroke-linecap="round"/></svg></div>
+<div class="fx" id="fx-eyes"><div class="lid t"></div><div class="lid b"></div></div>
+<div class="fx" id="fx-flash"></div>
+
+<div id="touch" hidden>
+  <div id="t-move"></div>
+  <div id="t-look"></div>
+  <div id="t-joy"><div id="t-knob"></div></div>
+  <button class="tbtn" id="t-throw" type="button">THROW</button>
+  <button class="tbtn" id="t-catch" type="button">CATCH</button>
+  <button class="tbtn" id="t-pick" type="button">PICK UP</button>
+  <button class="tbtn" id="t-duck" type="button">DUCK</button>
+  <button class="tbtn" id="t-brace" type="button" hidden>BRACE</button>
+  <button class="tbtn" id="t-eyes" type="button" hidden>CLOSE EYES</button>
+  <button class="tbtn" id="t-pause" type="button" aria-label="Pause">II</button>
+</div>
+
+<div class="clickplay" id="clickplay" hidden><div>Click to start aiming</div></div>
+
+<div id="menu">
+  <section class="screen" id="scr-title">
+    <div class="sticker">
+      <h1 class="logo"><span>Dumpling</span><span>Duel</span></h1>
+      <p class="tag">Throw the squishy across the studio. Catch it, dodge it, or take one to the face.</p>
+      <div class="who">
+        <label class="field" for="in-name"><span>Your name</span><input type="text" id="in-name" maxlength="14" autocomplete="nickname" spellcheck="false"></label>
+        <div class="field"><span id="char-label">Play as</span><div class="seg" id="set-char" role="group" aria-labelledby="char-label"><button type="button" data-v="m">Male</button><button type="button" data-v="f">Female</button></div></div>
+      </div>
+      <div class="btns">
+        <button class="btn big" id="b-solo" type="button">Play vs Bot</button>
+        <button class="btn big alt" id="b-online" type="button">Play online 1v1</button>
+      </div>
+      <div class="row"><button class="link" id="b-howto" type="button">How to play</button><button class="link" id="b-settings" type="button">Settings</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-mode" hidden>
+    <div class="sticker">
+      <div id="lobby-box" hidden>
+        <h3>Room code</h3>
+        <div class="room-code" id="lobby-code">-----</div>
+        <div class="row" style="margin-top:10px"><button class="btn ghost" id="b-copy" type="button">Copy invite link</button><span class="note" id="copy-note"></span></div>
+        <div class="status" id="lobby-status" style="margin-top:12px"><span class="dot"></span><span id="lobby-status-text">Waiting for a friend to join...</span></div>
+      </div>
+      <h2 id="mode-title">Pick a mode</h2>
+      <div class="modes" role="radiogroup" aria-label="Game mode">
+        <button class="mode-card" type="button" role="radio" data-mode="classic" aria-checked="true"><b>Classic</b><small>Endless catch, no penalties. Random clutter behind you rattles, clangs and squeaks.</small><span class="chip">Noisy stuff</span></button>
+        <button class="mode-card" type="button" role="radio" data-mode="penalty" aria-checked="false"><b>Penalty</b><small>Drop a catchable throw and your opponent gets a free shot at your head. You can only brace or close your eyes.</small><span class="chip">Headshots score</span></button>
+        <button class="mode-card" type="button" role="radio" data-mode="hotpotato" aria-checked="false"><b>Hot Potato</b><small>It pops after 40 s. Holding it, or leaving it near you, loses. In the taped middle it's a draw.</small><span class="chip">40 seconds</span></button>
+      </div>
+      <div class="opt-row" id="opt-diff-row"><span>Bot</span><div class="seg" id="opt-diff"><button type="button" data-v="easy">Easy</button><button type="button" data-v="normal" aria-pressed="true">Normal</button><button type="button" data-v="hard">Hard</button></div></div>
+      <div class="opt-row" id="opt-target-row" hidden><span>First to</span><div class="seg" id="opt-target"><button type="button" data-v="3">3</button><button type="button" data-v="5" aria-pressed="true">5</button><button type="button" data-v="7">7</button></div><span>headshots</span></div>
+      <p class="note" id="opt-hp-note" hidden>First to 3 rounds wins. Who starts with the potato is random.</p>
+      <div class="btns"><button class="btn ghost" id="b-mode-back" type="button">Back</button><button class="btn big" id="b-start" type="button">Start</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-online" hidden>
+    <div class="sticker">
+      <h2>Online 1v1</h2>
+      <p>One of you creates a room and shares the code. The other joins with it. The game runs directly between your two browsers.</p>
+      <div class="btns"><button class="btn big" id="b-create" type="button">Create a room</button></div>
+      <div class="field"><label for="in-code">Join with a code</label>
+        <div class="row" style="gap:10px; flex-wrap:nowrap"><input type="text" id="in-code" class="code-input" maxlength="5" autocomplete="off" spellcheck="false" placeholder="ABCDE" style="flex:1"><button class="btn alt" id="b-join" type="button" style="flex:none">Join</button></div>
+      </div>
+      <div class="status" id="online-status" hidden><span class="dot"></span><span id="online-status-text"></span></div>
+      <p class="note" id="online-preview-note" hidden>Online rooms need the deployed site. This preview can only play against the bot.</p>
+      <div class="btns"><button class="btn ghost" id="b-online-back" type="button">Back</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-wait" hidden>
+    <div class="sticker">
+      <h2 id="wait-title">Connected</h2>
+      <div class="status ok" id="wait-status"><span class="dot"></span><span id="wait-text">Waiting for the host to start...</span></div>
+      <div class="btns"><button class="btn ghost" id="b-wait-leave" type="button">Leave</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-pause" hidden>
+    <div class="sticker">
+      <h2>Paused</h2>
+      <p class="note" id="pause-note"></p>
+      <div class="btns" style="flex-direction:column">
+        <button class="btn big" id="b-resume" type="button">Resume</button>
+        <button class="btn ghost" id="b-change" type="button">Change mode</button>
+        <button class="btn ghost" id="b-pause-howto" type="button">How to play</button>
+        <button class="btn ghost" id="b-pause-settings" type="button">Settings</button>
+        <button class="btn ghost" id="b-leave" type="button">Leave game</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-over" hidden>
+    <div class="sticker">
+      <h2 id="over-title">You win!</h2>
+      <div class="over-score" id="over-score"><span class="s1">0</span> : <span class="s2">0</span></div>
+      <p class="note" id="over-note"></p>
+      <div class="btns"><button class="btn ghost" id="b-over-leave" type="button">Leave</button><button class="btn big" id="b-rematch" type="button">Rematch</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-settings" hidden>
+    <div class="sticker">
+      <h2>Settings</h2>
+      <label class="slider" for="set-sens"><span>Mouse / touch sensitivity</span><output id="set-sens-v">1.0</output><input type="range" id="set-sens" min="0.3" max="2.5" step="0.1"></label>
+      <label class="slider" for="set-vol"><span>Volume</span><output id="set-vol-v">80%</output><input type="range" id="set-vol" min="0" max="1" step="0.05"></label>
+      <div class="opt-row"><span>Graphics</span><div class="seg" id="set-gfx"><button type="button" data-v="low">Fast</button><button type="button" data-v="high" aria-pressed="true">Pretty</button></div></div>
+      <div class="opt-row"><span>Aim guide</span><div class="seg" id="set-arc"><button type="button" data-v="off">Off</button><button type="button" data-v="on" aria-pressed="true">On</button></div></div>
+      <div class="btns"><button class="btn big" id="b-settings-done" type="button">Done</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-howto" hidden>
+    <div class="sticker">
+      <h2>How to play</h2>
+      <div class="howto">
+        <div><h3>The basics</h3><ul>
+          <li>You stand on one side of the living room, your opponent on the other. Throw the dumpling to them and catch theirs.</li>
+          <li>Hold to charge a throw, release to let go. The ring around the crosshair shows the power.</li>
+          <li>Press catch just before it reaches you. Your hands stay out for half a second.</li>
+          <li>Missed or dropped? Whoever is closer to it has to walk over and pick it up.</li>
+          <li>You can move and duck to dodge. During a free shot you can't move at all.</li>
+        </ul></div>
+        <div><h3>Classic</h3><ul><li>No score pressure and no penalties. Pots, bottles, a rubber duck and other random stuff sit behind each of you and make noise when hit.</li></ul></div>
+        <div><h3>Penalty</h3><ul>
+          <li>If a catchable throw reaches you and you don't catch it, your opponent gets a free shot at your head. Dodging a catchable throw counts as a drop.</li>
+          <li>During the free shot, the target can only brace or close their eyes. A headshot scores a point.</li>
+          <li>A throw that was never catchable is just a miss, with no penalty.</li>
+        </ul></div>
+        <div><h3>Hot Potato</h3><ul>
+          <li>A random player starts with it. It explodes after 40 seconds.</li>
+          <li>If it's in your hands, or lying near you because you didn't pick it up, you lose the round.</li>
+          <li>If it's between the two blue tape lines in the middle when it pops, the round is a draw.</li>
+        </ul></div>
+        <div><h3>Controls</h3>
+          <div class="keys-grid">
+            <kbd>W A S D</kbd><span>Move</span>
+            <kbd>Mouse</kbd><span>Aim</span>
+            <kbd>Hold left click</kbd><span>Charge, release to throw (click without the dumpling to catch)</span>
+            <kbd>Space / right click</kbd><span>Catch</span>
+            <kbd>E</kbd><span>Pick up</span>
+            <kbd>C / Ctrl</kbd><span>Duck</span>
+            <kbd>F / Shift</kbd><span>Brace (free shot target)</span>
+            <kbd>Q</kbd><span>Close your eyes (free shot target)</span>
+            <kbd>Esc / P</kbd><span>Pause</span>
+          </div>
+          <p class="note" style="margin-top:8px">On a phone: left thumb moves, drag on the right to aim, hold THROW and drag to aim while charging. Landscape works best.</p>
+        </div>
+      </div>
+      <div class="btns"><button class="btn big" id="b-howto-done" type="button">Got it</button></div>
+    </div>
+  </section>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
