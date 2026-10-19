@@ -37,9 +37,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--mustard); o
 
 /* ---------- menus ---------- */
 #menu { position: fixed; inset: 0; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); overflow-y: auto; z-index: 30; background: radial-gradient(ellipse at 50% 120%, rgba(43,36,32,0.55), rgba(43,36,32,0.05) 60%); }
-.screen { width: min(560px, 100%); }
+.screen { width: min(560px, 100%); min-width: 0; }
 @media (min-width: 900px) { #menu { place-items: center start; padding-left: max(5vw, env(safe-area-inset-left)); } #menu.center { place-items: center; } }
-.sticker { background: var(--bun); border: var(--line) solid var(--ink); border-radius: 26px; box-shadow: var(--shadow); padding: clamp(18px, 4vw, 28px); display: grid; gap: 16px; }
+.sticker { background: var(--bun); border: var(--line) solid var(--ink); border-radius: 26px; box-shadow: var(--shadow); padding: clamp(18px, 4vw, 28px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .logo { font-family: var(--display); font-weight: 400; margin: 0; line-height: 0.92; font-size: clamp(44px, 11vw, 76px); letter-spacing: -0.01em; color: var(--bun); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 4px 5px 0 var(--ink); display: grid; }
 .logo span:last-child { color: var(--mustard); margin-left: 0.5em; }
 .tag { margin: 0; font-size: 16px; color: var(--muted); font-weight: 700; text-wrap: balance; }
@@ -60,7 +60,7 @@ p { margin: 0; line-height: 1.5; }
 .link { background: none; border: 0; padding: 4px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
 .row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
 .field { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
-.field input[type=text] { font: inherit; font-size: 17px; font-weight: 700; padding: 11px 14px; border: var(--line) solid var(--ink); border-radius: 14px; background: #fff; color: var(--ink); min-width: 0; }
+.field input[type=text] { font: inherit; font-size: 17px; font-weight: 700; padding: 11px 14px; border: var(--line) solid var(--ink); border-radius: 14px; background: #fff; color: var(--ink); min-width: 0; width: 100%; }
 .code-input { text-transform: uppercase; letter-spacing: 0.3em; font-family: var(--display) !important; }
 .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (max-width: 520px) { .modes { grid-template-columns: 1fr; } }
@@ -308,7 +308,7 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
       <h1 class="logo"><span>Dumpling</span><span>Duel</span></h1>
       <p class="tag">Throw the squishy across the studio. Catch it, dodge it, or take one to the face.</p>
       <div class="who">
-        <label class="field" for="in-name"><span>Your name</span><input type="text" id="in-name" maxlength="14" autocomplete="nickname" spellcheck="false"></label>
+        <label class="field" for="in-name"><span>Your name</span><input type="text" id="in-name" maxlength="14" size="14" autocomplete="nickname" spellcheck="false"></label>
         <div class="field"><span id="char-label">Play as</span><div class="seg" id="set-char" role="group" aria-labelledby="char-label"><button type="button" data-v="m">Male</button><button type="button" data-v="f">Female</button></div></div>
       </div>
       <div class="btns">
@@ -346,7 +346,7 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
       <p>One of you creates a room and shares the code. The other joins with it. The game runs directly between your two browsers.</p>
       <div class="btns"><button class="btn big" id="b-create" type="button">Create a room</button></div>
       <div class="field"><label for="in-code">Join with a code</label>
-        <div class="row" style="gap:10px; flex-wrap:nowrap"><input type="text" id="in-code" class="code-input" maxlength="5" autocomplete="off" spellcheck="false" placeholder="ABCDE" style="flex:1"><button class="btn alt" id="b-join" type="button" style="flex:none">Join</button></div>
+        <div class="row" style="gap:10px; flex-wrap:nowrap"><input type="text" id="in-code" class="code-input" maxlength="5" size="5" autocomplete="off" spellcheck="false" placeholder="ABCDE" style="flex:1 1 0; width:0"><button class="btn alt" id="b-join" type="button" style="flex:none">Join</button></div>
       </div>
       <div class="status" id="online-status" hidden><span class="dot"></span><span id="online-status-text"></span></div>
       <p class="note" id="online-preview-note" hidden>Online rooms need the deployed site. This preview can only play against the bot.</p>
