@@ -192,7 +192,8 @@ input.on('primary', () => {
 input.on('throwEnd', () => { if (L.charging) { L.charging = false; doThrow(); } });
 input.on('catch', () => { audio.init(); doCatch(); });
 input.on('pickup', doPickup);
-input.on('help', () => { const k = $('h-keys'); k.hidden = !k.hidden; });
+let keysTimer = 0;
+input.on('help', () => { clearTimeout(keysTimer); const k = $('h-keys'); k.hidden = !k.hidden; });
 input.on('mute', () => { settings.vol = settings.vol > 0 ? 0 : 0.8; audio.setVolume(settings.vol); saveSettings(); toast(settings.vol ? 'Sound on' : 'Sound off'); });
 input.on('pause', () => { if (G.phase === 'game') openPause(); });
 input.on('unlocked', () => { if (G.phase === 'game' && !G.paused && $('menu').hidden) openPause(); });
@@ -627,7 +628,7 @@ function updateHud(dt) {
   const gs = gsNow();
   if (!gs) return;
   const me = G.me, opp = 1 - me;
-  $('h-n0').textContent = (G.names[me] || 'You') + ' (you)';
+  $('h-n0').textContent = G.names[me] || 'You';
   $('h-n1').textContent = G.names[opp] || 'Opponent';
   document.querySelector('.pill.p1 i').style.background = PLAYER_COLORS[me];
   document.querySelector('.pill.p2 i').style.background = PLAYER_COLORS[opp];
@@ -793,6 +794,9 @@ function enterGame() {
   fp.root.visible = true;
   fp.setColor(CHAR[charOf[G.me]].top.color);
   showTouch(input.isTouch);
+  // Key help shows for the first 20 s of a game, then tucks away (H brings it back).
+  clearTimeout(keysTimer);
+  if (!input.isTouch) keysTimer = setTimeout(() => { $('h-keys').hidden = true; }, 20000);
   resetLocal();
   closeMenus();
   camera.fov = 72; camera.updateProjectionMatrix();

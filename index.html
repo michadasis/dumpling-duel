@@ -48,6 +48,8 @@ h3 { margin: 0 0 4px; font-size: 15px; letter-spacing: 0.06em; text-transform: u
 p { margin: 0; line-height: 1.5; }
 .btns { display: flex; flex-wrap: wrap; gap: 12px; }
 .btns > * { flex: 1 1 180px; }
+.btns.stack { flex-direction: column; flex-wrap: nowrap; }
+.btns.stack > * { flex: 0 0 auto; }
 .btn { border: var(--line) solid var(--ink); background: var(--mustard); border-radius: 18px; padding: 13px 18px; font-weight: 900; font-size: 17px; box-shadow: 3px 3px 0 var(--ink); transition: transform 0.12s cubic-bezier(.3,1.6,.5,1), box-shadow 0.12s; }
 .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
 .btn:active { transform: translate(2px, 2px) scale(1.04, 0.9); box-shadow: 1px 1px 0 var(--ink); }
@@ -80,13 +82,13 @@ p { margin: 0; line-height: 1.5; }
 .status.err .dot { background: var(--p1); animation: none; }
 @keyframes pulse { 50% { transform: scale(0.7); } }
 .note { font-size: 13px; color: var(--muted); font-weight: 700; }
-.howto { display: grid; gap: 14px; max-height: min(64vh, 560px); overflow-y: auto; padding-right: 6px; }
+.howto { display: grid; gap: 14px; max-height: min(64vh, 560px, calc(100vh - 220px)); min-height: 120px; overflow-y: auto; padding-right: 6px; }
 .howto ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.45; }
 .keys-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; font-size: 14px; }
 kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px solid var(--ink); border-bottom-width: 4px; border-radius: 8px; padding: 1px 7px; background: #fff; white-space: nowrap; }
 .slider { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; font-weight: 700; font-size: 14px; }
 .slider input { grid-column: 1 / -1; accent-color: var(--ink); width: 100%; }
-.over-score { font-family: var(--display); font-size: clamp(40px, 12vw, 64px); text-align: center; line-height: 1; }
+.over-score { font-family: var(--display); font-size: clamp(40px, 12vw, 64px); text-align: center; line-height: 1.15; }
 .over-score .s1 { color: var(--p1); } .over-score .s2 { color: var(--p2); }
 .over-score { -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
 
@@ -99,7 +101,26 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
 .pill .nm { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .pill .sc { font-family: var(--display); font-weight: 400; font-size: 20px; font-variant-numeric: tabular-nums; }
 .pill.p1 { justify-self: start; }
+.pill.p1 .nm::after { content: ' (you)'; }
+@media (max-width: 600px) { .pill.p1 .nm::after { content: ''; } .hud-center { max-width: 42vw; } .sub { font-size: 12px; } .pill { gap: 6px; padding: 5px 9px 5px 6px; } .pill .nm { font-size: 12px; } .pill .sc { font-size: 17px; } }
+@media (max-width: 1000px) { #hud .keys { bottom: auto; top: max(64px, calc(env(safe-area-inset-top) + 58px)); } }
 .pill.p2 { justify-self: end; }
+@media (max-height: 820px) {
+  .sticker { gap: 11px; padding: 16px 20px; }
+  .logo { font-size: clamp(38px, 8.5vh, 64px); }
+  .btn.big { padding: 12px 18px; font-size: 17px; }
+  .mode-card { padding: 9px 10px; gap: 4px; }
+  .mode-card small { font-size: 12px; line-height: 1.3; }
+  .mode-card .chip { display: none; }
+  .room-code { font-size: clamp(28px, 6vh, 40px); padding: 4px 12px; }
+  #lobby-box .row { margin-top: 6px !important; }
+  #lobby-status { margin-top: 6px !important; }
+  h2 { font-size: clamp(22px, 4.5vh, 30px); }
+}
+@media (max-height: 560px) {
+  .tag { display: none; }
+  .mode-card small { display: none; }
+}
 .who { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
 .who > .field:first-child { flex: 1 1 200px; }
 .who .seg button { padding: 11px 16px; font-size: 15px; }
@@ -113,7 +134,7 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
 #crosshair .dot { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--bun); box-shadow: 0 0 0 2px var(--ink); }
 #crosshair svg { position: absolute; inset: 0; overflow: visible; }
 #crosshair .ring { fill: none; stroke: var(--mustard); stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 23px 23px; filter: drop-shadow(0 0 1.5px var(--ink)); }
-.prompt { position: absolute; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translateX(-50%); background: var(--bun); border: var(--line) solid var(--ink); border-radius: 16px; padding: 8px 14px; box-shadow: 3px 3px 0 var(--ink); font-size: 15px; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
+.prompt { position: absolute; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translateX(-50%); background: var(--bun); border: var(--line) solid var(--ink); border-radius: 16px; padding: 8px 14px; box-shadow: 3px 3px 0 var(--ink); font-size: 15px; width: max-content; max-width: min(560px, calc(100vw - 32px)); text-align: center; text-wrap: balance; }
 .prompt.warn { background: var(--p1); color: var(--bun); }
 .prompt.go { background: var(--mustard); }
 .banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: max-content; max-width: calc(100vw - 32px); }
@@ -250,11 +271,11 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
   <div class="keys" id="h-keys">
     <kbd>WASD</kbd><span>move</span>
     <kbd>Mouse</kbd><span>aim</span>
-    <kbd>Hold click</kbd><span>charge, release to throw</span>
+    <kbd>Hold click</kbd><span>throw</span>
     <kbd>Space / R-click</kbd><span>catch</span>
     <kbd>E</kbd><span>pick up</span>
     <kbd>C</kbd><span>duck</span>
-    <kbd>F / Q</kbd><span>brace / close eyes (free shot)</span>
+    <kbd>F / Q</kbd><span>brace / close eyes</span>
     <kbd>H</kbd><span>hide this</span>
   </div>
   <div class="netinfo" id="h-net"></div>
@@ -345,7 +366,7 @@ kbd { font-family: var(--body); font-weight: 900; font-size: 12px; border: 2px s
     <div class="sticker">
       <h2>Paused</h2>
       <p class="note" id="pause-note"></p>
-      <div class="btns" style="flex-direction:column">
+      <div class="btns stack">
         <button class="btn big" id="b-resume" type="button">Resume</button>
         <button class="btn ghost" id="b-change" type="button">Change mode</button>
         <button class="btn ghost" id="b-pause-howto" type="button">How to play</button>
