@@ -198,7 +198,7 @@ export function buildRoom() {
 
   // ---------- kitchenette (-x end, against the end wall) ----------
   box(-4, 0, 0.35, -3.42, 0.86, 2.1, M.carcass, { col: { kind: 'cabinet', sound: 'wood' } });
-  box(-3.445, 0, 0.36, -3.42, 0.1, 2.08, M.matte, { cast: false });
+  box(-3.44, 0, 0.36, -3.414, 0.1, 2.08, M.matte, { cast: false }); // 6 mm proud of the cabinet front so the faces don't z-fight
   {
     const fz = [[0.36, 0.95, 'door'], [0.95, 1.55, 'drawers'], [1.55, 2.08, 'door']];
     for (const [a, b, t] of fz) {

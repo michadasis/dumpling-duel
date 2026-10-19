@@ -1030,10 +1030,29 @@ $('in-name').value = settings.name;
 seg('set-char', settings.char, (v) => { settings.char = v; saveSettings(); setAvatar(0, v, settings.name); setAvatar(1, otherChar(v), 'Bao Bot'); fp.setColor(CHAR[v].top.color); });
 applyGfx();
 show('scr-title');
-requestAnimationFrame(frame);
-setTimeout(refreshMirror, 300);
 const roomParam = params.get('room');
-if (roomParam && !PREVIEW) { $('in-code').value = roomParam.toUpperCase(); joinRoom(roomParam); }
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+const loadStatus = (t) => { const el = $('load-status'); if (el) el.textContent = t; };
+async function boot() {
+  loadStatus('Setting up the studio...');
+  await nextFrame();
+  // Compile every shader now (including the hidden opponent and hands) so the first frames don't stutter.
+  const hidden = [avatars[1].root, fp.root].filter((o) => !o.visible);
+  hidden.forEach((o) => (o.visible = true));
+  updateMenu(1 / 60);
+  try { if (renderer.compileAsync) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); } catch { /* compile on first draw instead */ }
+  hidden.forEach((o) => (o.visible = false));
+  refreshMirror();
+  renderer.render(scene, camera);
+  if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
+  last = performance.now();
+  requestAnimationFrame(frame);
+  await nextFrame(); await nextFrame();
+  const el = $('loading');
+  if (el) { el.classList.add('done'); setTimeout(() => el.remove(), 600); }
+  if (roomParam && !PREVIEW) { $('in-code').value = roomParam.toUpperCase(); joinRoom(roomParam); }
+}
+boot();
 
 // Debug/test hook (harmless in production).
 window.__dd = {
